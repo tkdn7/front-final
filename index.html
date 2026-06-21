@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LIFE CYCLE</title>
+    <meta
+      name="description"
+      content="TODO, 습관, 캘린더, 한 줄 일기, AI 브리핑을 한 화면에서 관리하는 LIFE CYCLE 웹앱"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <button class="brand" id="brandButton" type="button" aria-label="메인 화면으로 이동">
+          LIFE CYCLE
+        </button>
+
+        <nav class="main-nav" aria-label="주요 화면">
+          <button class="nav-button" type="button" data-view="todo">
+            <img src="./icon/todo-icon.png" alt="" />
+            <span>TODO</span>
+          </button>
+          <button class="nav-button" type="button" data-view="habit">
+            <img src="./icon/habit-icon.png" alt="" />
+            <span>습관</span>
+          </button>
+          <button class="nav-button" type="button" data-view="diary">
+            <img src="./icon/diary-icon.png" alt="" />
+            <span>일기</span>
+          </button>
+          <button class="nav-button" type="button" data-view="ai">
+            <img src="./icon/ai-icon.png" alt="" />
+            <span>AI</span>
+          </button>
+        </nav>
+
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="라이트/다크 모드 전환">
+          <img id="themeIcon" src="./icon/dark-mode-icon.png" alt="" />
+          <span id="themeLabel">DARK</span>
+        </button>
+      </header>
+
+      <main class="app-main">
+        <section class="view active" id="view-dashboard" aria-labelledby="dashboardTitle">
+          <div class="dashboard-grid">
+            <aside class="side-stack">
+              <article class="panel todo-panel">
+                <div class="panel-heading">
+                  <div>
+                    <p class="eyebrow">TODAY</p>
+                    <h2 id="dashboardTitle">TODO 리스트</h2>
+                  </div>
+                  <button class="icon-action" type="button" data-view-jump="todo" aria-label="TODO 상세">
+                    <img src="./icon/add-todo-icon.png" alt="" />
+                  </button>
+                </div>
+                <div class="progress-row">
+                  <div class="progress-track">
+                    <span id="todoProgressBar"></span>
+                  </div>
+                  <strong id="todoProgressText">0/0</strong>
+                </div>
+                <div class="scroll-list compact-list" id="dashboardTodoList"></div>
+              </article>
+
+              <article class="panel habit-panel">
+                <div class="panel-heading">
+                  <div>
+                    <p class="eyebrow">ROUTINE</p>
+                    <h2>오늘의 습관</h2>
+                  </div>
+                  <button class="icon-action" type="button" data-view-jump="habit" aria-label="습관 상세">
+                    <img src="./icon/habit-icon.png" alt="" />
+                  </button>
+                </div>
+                <div class="progress-row">
+                  <div class="progress-track accent">
+                    <span id="habitProgressBar"></span>
+                  </div>
+                  <strong id="habitProgressText">0%</strong>
+                </div>
+                <div class="scroll-list compact-list" id="dashboardHabitList"></div>
+              </article>
+            </aside>
+
+            <section class="panel calendar-panel">
+              <div class="panel-heading calendar-heading">
+                <button class="month-button" id="prevMonth" type="button" aria-label="이전 달">&lt;</button>
+                <div>
+                  <p class="eyebrow">CALENDAR</p>
+                  <h2 id="calendarTitle">2026년 06월</h2>
+                </div>
+                <button class="month-button" id="nextMonth" type="button" aria-label="다음 달">&gt;</button>
+              </div>
+              <div class="weekday-row" aria-hidden="true">
+                <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span>
+              </div>
+              <div class="calendar-grid" id="calendarGrid"></div>
+              <div class="date-split" id="selectedDatePanel"></div>
+            </section>
+
+            <aside class="panel ai-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">BRIEFING</p>
+                  <h2>AI 브리핑</h2>
+                </div>
+                <button class="icon-action" type="button" data-view-jump="ai" aria-label="AI 상세">
+                  <img src="./icon/ai-icon.png" alt="" />
+                </button>
+              </div>
+              <div class="briefing-box" id="dashboardBriefing"></div>
+              <button class="primary-button full-width" id="openApiDialogFromDashboard" type="button">
+                오늘 조언 생성
+              </button>
+            </aside>
+          </div>
+        </section>
+
+        <section class="view" id="view-todo" aria-labelledby="todoViewTitle">
+          <div class="workspace-grid map-page">
+            <aside class="panel map-rail">
+              <p class="eyebrow">CALENDAR</p>
+              <h2>TODO 날짜</h2>
+              <div class="mini-date-list" id="todoDateRail"></div>
+            </aside>
+            <article class="panel map-main">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">TODO</p>
+                  <h1 id="todoViewTitle">일정관리</h1>
+                </div>
+                <button class="primary-button compact-button" id="openTodoDialog" type="button">일정 추가</button>
+              </div>
+              <div class="scroll-list detail-list" id="todoList"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="view-habit" aria-labelledby="habitViewTitle">
+          <div class="workspace-grid map-page">
+            <aside class="panel map-rail">
+              <p class="eyebrow">RANK</p>
+              <h2>습관 랭킹</h2>
+              <div class="scroll-list rail-list" id="habitRailList"></div>
+            </aside>
+            <article class="panel map-main">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">ROUTINE</p>
+                  <h1 id="habitViewTitle">습관 관리</h1>
+                </div>
+              </div>
+              <form class="form-grid compact-form" id="habitForm">
+                <label>
+                  습관 이름
+                  <input id="habitName" type="text" placeholder="예: 물 8잔 마시기" required />
+                </label>
+                <label>
+                  아이콘
+                  <input id="habitEmoji" type="text" maxlength="2" value="✓" />
+                </label>
+                <button class="primary-button" type="submit">습관 추가</button>
+              </form>
+              <p class="form-note">새 습관은 매일 반복으로 등록됩니다.</p>
+              <div class="scroll-list detail-list progress-list" id="habitList"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="view-diary" aria-labelledby="diaryViewTitle">
+          <div class="workspace-grid map-page">
+            <aside class="panel map-rail">
+              <p class="eyebrow">CALENDAR</p>
+              <h2>일기 날짜</h2>
+              <div class="mini-date-list" id="diaryDateRail"></div>
+            </aside>
+            <article class="panel map-main">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">DIARY</p>
+                  <h1 id="diaryViewTitle">날짜별 한 줄 일기</h1>
+                </div>
+              </div>
+              <div class="selected-date-large" id="diarySelectedDate"></div>
+              <div class="diary-editor">
+                <div class="diary-line-row">
+                  <label>
+                    이모티콘
+                    <input id="diaryMood" type="text" maxlength="2" value="🙂" />
+                  </label>
+                  <label for="diaryText">
+                    한 줄 일기
+                    <textarea id="diaryText" rows="2" placeholder="오늘 하루를 한 줄로 남겨보세요."></textarea>
+                  </label>
+                </div>
+                <button class="secondary-button" id="saveDiary" type="button">일기 저장</button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="view-ai" aria-labelledby="aiViewTitle">
+          <div class="workspace-grid map-page">
+            <aside class="panel map-rail">
+              <p class="eyebrow">SCHEDULE</p>
+              <h2>브리핑 대상</h2>
+              <div class="scroll-list rail-list" id="briefingContext"></div>
+            </aside>
+            <article class="panel map-main ai-workspace">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">AI</p>
+                  <h1 id="aiViewTitle">AI 브리핑</h1>
+                </div>
+                <span class="count-badge">GPT 5.4 nano</span>
+              </div>
+              <div class="briefing-box large" id="aiBriefingResult"></div>
+              <div class="ai-action-row">
+                <button class="primary-button" id="openApiDialogFromAi" type="button">
+                  실제 API로 브리핑 생성
+                </button>
+              </div>
+              <form class="question-form" id="aiQuestionForm">
+                <label for="aiQuestion">내 일정 질문</label>
+                <div class="question-row">
+                  <input id="aiQuestion" type="text" placeholder="예: 스터디 전에 무엇을 먼저 준비하면 좋을까?" />
+                  <button class="secondary-button" type="submit">질문하기</button>
+                </div>
+              </form>
+              <p class="form-note">
+                OpenWeatherMap은 과제용 키를 사용하고, OpenRouter 키는 요청에만 사용됩니다.
+              </p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop hidden" id="todoDialog" role="dialog" aria-modal="true" aria-labelledby="todoDialogTitle">
+      <div class="modal-card">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">TODO</p>
+            <h2 id="todoDialogTitle">일정 추가</h2>
+          </div>
+          <button class="close-button" id="closeTodoDialog" type="button" aria-label="닫기">×</button>
+        </div>
+        <form class="form-grid" id="todoForm">
+          <label>
+            할 일
+            <input id="todoTitle" type="text" placeholder="예: 알고리즘 복습" required />
+          </label>
+          <label>
+            폴더
+            <select id="todoFolder">
+              <option>공부</option>
+              <option>건강</option>
+              <option>일정</option>
+              <option>알바</option>
+              <option>기타</option>
+            </select>
+          </label>
+          <label>
+            우선순위
+            <select id="todoPriority">
+              <option value="high">높음</option>
+              <option value="medium" selected>보통</option>
+              <option value="low">낮음</option>
+            </select>
+          </label>
+          <label>
+            기한
+            <input id="todoDueDate" type="date" />
+          </label>
+          <label>
+            시간
+            <input id="todoDueTime" type="time" />
+          </label>
+          <button class="primary-button" type="submit">일정 추가</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-backdrop hidden" id="apiDialog" role="dialog" aria-modal="true" aria-labelledby="apiDialogTitle">
+      <div class="modal-card">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">ONE TIME USE</p>
+            <h2 id="apiDialogTitle">API 키 입력</h2>
+          </div>
+          <button class="close-button" id="closeApiDialog" type="button" aria-label="닫기">×</button>
+        </div>
+        <p class="form-note">
+          OpenWeatherMap 키는 과제용으로 미리 설정되어 있습니다. OpenRouter 키는 이번 요청에만 사용하고 즉시 비웁니다.
+        </p>
+        <form class="form-grid api-form" id="apiForm">
+          <label>
+            OpenRouter API Key
+            <input id="openRouterApiKey" type="password" autocomplete="off" placeholder="이번 요청에만 입력" />
+          </label>
+          <label>
+            지역명
+            <input id="briefingLocation" type="text" placeholder="예: 강남, 노원구, 서울" />
+          </label>
+          <div class="fixed-info">
+            <span>AI 모델</span>
+            <strong>GPT 5.4 nano</strong>
+          </div>
+          <label class="full-field">
+            일정 선택
+            <select id="briefingEventSelect"></select>
+          </label>
+          <button class="primary-button full-field" type="submit">이번 요청으로 브리핑 생성</button>
+        </form>
+      </div>
+    </div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
