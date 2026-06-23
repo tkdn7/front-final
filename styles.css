@@ -849,6 +849,11 @@ button {
   gap: 12px;
 }
 
+#todoForm .primary-button {
+  grid-column: 1 / -1;
+  justify-self: stretch;
+}
+
 .compact-form {
   grid-template-columns: minmax(0, 1.4fr) minmax(120px, 0.5fr) auto;
   align-items: end;

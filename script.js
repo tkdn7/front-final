@@ -714,7 +714,7 @@ function renderDiaryView() {
 function renderDiaryFormFields() {
   $("#diarySelectedDate").textContent = koreanDate(state.selectedDate);
   $("#diaryDate").value = state.selectedDate;
-  $("#diaryMood").value = diaries[state.selectedDate]?.mood || "";
+  $("#diaryMood").value = diaries[state.selectedDate]?.mood || "🙂";
   $("#diaryText").value = diaries[state.selectedDate]?.text || "";
 }
 
@@ -813,12 +813,7 @@ function closeDiaryDialog() {
 
 function saveDiary() {
   const text = $("#diaryText").value.trim();
-  const mood = $("#diaryMood").value.trim();
-  if (!mood) {
-    alert("이모티콘을 선택하세요!");
-    $("#diaryMood").focus();
-    return;
-  }
+  const mood = $("#diaryMood").value.trim() || "🙂";
   if (!text) {
     delete diaries[state.selectedDate];
   } else {
@@ -867,10 +862,23 @@ function handleScheduleQuestion(event) {
   openApiDialog({ keepQuestion: true });
 }
 
+function timeOrder(item) {
+  return item.time || "99:99";
+}
+
+function sortSchedulesByTime(items) {
+  return [...items].sort((a, b) => (
+    timeOrder(a).localeCompare(timeOrder(b))
+    || dueOrder(a.date) - dueOrder(b.date)
+    || a.title.localeCompare(b.title)
+  ));
+}
+
 function buildBriefingContext(selectedSchedule, todayEvents) {
-  const todoSummary = todaysTodos().filter((todo) => !todo.done).slice(0, 4);
+  const pendingTodoSummary = sortTodos(pendingTodos());
+  const todoPreview = pendingTodoSummary.slice(0, 4);
   const habitSummary = todaysHabits();
-  const selectable = todayEvents.length ? todayEvents : allScheduleItems().slice(0, 6);
+  const selectable = sortSchedulesByTime(todayEvents.length ? todayEvents : allScheduleItems()).slice(0, 6);
   return `
     <div class="context-block">
       <p class="eyebrow">선택 가능 일정</p>
@@ -899,8 +907,8 @@ function buildBriefingContext(selectedSchedule, todayEvents) {
       <div class="list-item">
         <span class="badge">TODO</span>
         <div>
-          <div class="item-title">미완료 ${todoSummary.length}개</div>
-          <div class="item-meta">${todoSummary.map((todo) => escapeHtml(todo.title)).join(", ") || "미완료 TODO 없음"}</div>
+          <div class="item-title">미완료 ${pendingTodoSummary.length}개</div>
+          <div class="item-meta">${todoPreview.map((todo) => escapeHtml(todo.title)).join(", ") || "미완료 TODO 없음"}</div>
         </div>
       </div>
       <div class="list-item">
