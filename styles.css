@@ -829,6 +829,15 @@ button {
   align-items: end;
 }
 
+#openTodoDialog {
+  margin-right: 20px;
+}
+
+#habitForm {
+  grid-template-columns: minmax(0, 0.95fr) 96px auto;
+  padding-right: 20px;
+}
+
 label {
   display: grid;
   gap: 7px;
@@ -1007,6 +1016,18 @@ input[readonly] {
   display: block;
   margin-top: 3px;
   color: var(--muted);
+}
+
+.mini-date-summary {
+  min-width: 0;
+}
+
+.mini-date-count {
+  display: block;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.2;
 }
 
 .mini-date-button.active {

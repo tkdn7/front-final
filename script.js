@@ -13,6 +13,7 @@ const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
 const state = {
   view: "dashboard",
   monthCursor: new Date(),
+  diaryRailCursor: new Date(),
   selectedDate: formatDate(new Date()),
   selectedEventId: null,
   selectedScheduleKey: "",
@@ -131,6 +132,8 @@ function bindEvents() {
 
   $("#todoRailPrev").addEventListener("click", () => moveTodoRailMonth(-1));
   $("#todoRailNext").addEventListener("click", () => moveTodoRailMonth(1));
+  $("#diaryRailPrev").addEventListener("click", () => moveDiaryRailMonth(-1));
+  $("#diaryRailNext").addEventListener("click", () => moveDiaryRailMonth(1));
 
   $("#todoForm").addEventListener("submit", (event) => {
     event.preventDefault();
@@ -320,9 +323,8 @@ function renderTodoDateRail() {
     return `
       <button class="mini-date-button ${date === state.selectedDate ? "active" : ""}" type="button" data-todo-date="${date}">
         <span class="mini-date-number">${parseDate(date).getDate()}</span>
-        <span>
-          <strong>${koreanDate(date)}</strong>
-          <small>미완료 ${undoneCount}개</small>
+        <span class="mini-date-summary">
+          <strong class="mini-date-count">미완료 ${undoneCount}개</strong>
         </span>
       </button>
     `;
@@ -639,6 +641,8 @@ function prepareBriefingFromCalendar(scheduleKey) {
 }
 
 function renderDiaryView() {
+  const selected = parseDate(state.selectedDate);
+  state.diaryRailCursor = new Date(selected.getFullYear(), selected.getMonth(), 1);
   $("#diarySelectedDate").textContent = koreanDate(state.selectedDate);
   $("#diaryMood").value = diaries[state.selectedDate]?.mood || "🙂";
   $("#diaryText").value = diaries[state.selectedDate]?.text || "";
@@ -646,31 +650,47 @@ function renderDiaryView() {
 }
 
 function renderDiaryDateRail() {
-  const selected = parseDate(state.selectedDate);
-  const dates = Array.from({ length: 24 }, (_, index) => {
-    const date = new Date(selected);
-    date.setDate(selected.getDate() + index - 5);
-    return formatDate(date);
-  });
+  const cursor = state.diaryRailCursor;
+  const year = cursor.getFullYear();
+  const month = cursor.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const dates = Array.from({ length: daysInMonth }, (_, index) => formatDate(new Date(year, month, index + 1)));
+  $("#diaryRailMonthLabel").textContent = shortMonthLabel(cursor);
   $("#diaryDateRail").innerHTML = dates.map((date) => `
     <button class="mini-date-button ${date === state.selectedDate ? "active" : ""}" type="button" data-diary-date="${date}">
       <span class="mini-date-number">${parseDate(date).getDate()}</span>
-      <span>
-        <strong>${koreanDate(date)}</strong>
-        <small>${escapeHtml(diaries[date]?.mood || "○")}</small>
+      <span class="mini-date-summary">
+        <strong class="mini-date-count">${escapeHtml(diaries[date]?.mood || "미작성")}</strong>
       </span>
     </button>
   `).join("");
-  $$("[data-diary-date]").forEach((button) => {
+  $$('[data-diary-date]').forEach((button) => {
     button.addEventListener("click", () => {
       state.selectedDate = button.dataset.diaryDate;
-      state.monthCursor = new Date(parseDate(state.selectedDate).getFullYear(), parseDate(state.selectedDate).getMonth(), 1);
+      const selected = parseDate(state.selectedDate);
+      state.monthCursor = new Date(selected.getFullYear(), selected.getMonth(), 1);
+      state.diaryRailCursor = new Date(selected.getFullYear(), selected.getMonth(), 1);
       state.datePanelOpen = true;
       renderCalendar();
       renderDiaryView();
       renderAI();
     });
   });
+}
+
+function moveDiaryRailMonth(offset) {
+  const current = state.diaryRailCursor;
+  const targetMonth = new Date(current.getFullYear(), current.getMonth() + offset, 1);
+  const selected = parseDate(state.selectedDate);
+  const targetLastDay = new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0).getDate();
+  const targetDay = Math.min(selected.getDate(), targetLastDay);
+  state.selectedDate = formatDate(new Date(targetMonth.getFullYear(), targetMonth.getMonth(), targetDay));
+  state.monthCursor = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), 1);
+  state.diaryRailCursor = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), 1);
+  state.datePanelOpen = true;
+  renderCalendar();
+  renderDiaryView();
+  renderAI();
 }
 
 function saveDiary() {

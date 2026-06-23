@@ -53,7 +53,7 @@
                     <h2 id="dashboardTitle">TODO 리스트</h2>
                   </div>
                   <button class="icon-action" type="button" data-view-jump="todo" aria-label="TODO 상세">
-                    <img src="./icon/add-todo-icon.png" alt="" />
+                    <img src="./icon/todo-icon.png" alt="" />
                   </button>
                 </div>
                 <div class="progress-row">
@@ -182,6 +182,11 @@
             <aside class="panel map-rail">
               <p class="eyebrow">CALENDAR</p>
               <h2>일기 날짜</h2>
+              <div class="rail-month-control" aria-label="일기 월 이동">
+                <button class="rail-month-button" id="diaryRailPrev" type="button" aria-label="이전 달">&lt;</button>
+                <strong id="diaryRailMonthLabel">2026. 06</strong>
+                <button class="rail-month-button" id="diaryRailNext" type="button" aria-label="다음 달">&gt;</button>
+              </div>
               <div class="mini-date-list" id="diaryDateRail"></div>
             </aside>
             <article class="panel map-main">
