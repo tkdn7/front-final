@@ -124,6 +124,11 @@
             <aside class="panel map-rail">
               <p class="eyebrow">CALENDAR</p>
               <h2>TODO 날짜</h2>
+              <div class="rail-month-control" aria-label="TODO 월 이동">
+                <button class="rail-month-button" id="todoRailPrev" type="button" aria-label="이전 달">&lt;</button>
+                <strong id="todoRailMonthLabel">2026. 06</strong>
+                <button class="rail-month-button" id="todoRailNext" type="button" aria-label="다음 달">&gt;</button>
+              </div>
               <div class="mini-date-list" id="todoDateRail"></div>
             </aside>
             <article class="panel map-main">
@@ -193,7 +198,7 @@
                   </label>
                   <label for="diaryText">
                     한 줄 일기
-                    <textarea id="diaryText" rows="2" placeholder="오늘 하루를 한 줄로 남겨보세요."></textarea>
+                    <textarea id="diaryText" rows="1" placeholder="오늘 하루를 한 줄로 남겨보세요."></textarea>
                   </label>
                 </div>
                 <button class="secondary-button" id="saveDiary" type="button">일기 저장</button>

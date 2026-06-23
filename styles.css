@@ -231,6 +231,15 @@ button {
   background: color-mix(in srgb, var(--surface) 84%, var(--surface-soft));
 }
 
+.map-rail h2 {
+  margin-bottom: 18px;
+}
+
+.map-rail > .rail-list,
+.map-rail > .mini-date-list {
+  margin-top: 18px;
+}
+
 .map-main {
   overflow: hidden;
 }
@@ -538,11 +547,13 @@ button {
 
 .date-split {
   display: none;
-  grid-template-columns: 0.72fr 1.55fr 0.95fr;
+  grid-template-columns: 1fr;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 14px;
   border-top: 1px solid var(--line);
-  padding-top: 12px;
+  border-radius: 0 0 var(--radius) var(--radius);
+  background: color-mix(in srgb, var(--surface-soft) 62%, transparent);
+  padding: 14px 18px 4px;
   flex: 0 0 auto;
   min-height: 0;
 }
@@ -553,32 +564,55 @@ button {
 }
 
 .split-card {
-  min-height: 108px;
-  max-height: 148px;
-  overflow: auto;
-  border-radius: var(--radius);
-  background: var(--surface-soft);
-  padding: 11px;
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  min-height: 58px;
+  max-height: 88px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+  padding: 10px 14px;
   scrollbar-gutter: stable;
 }
 
-.date-summary-card h3,
 .split-card h3 {
-  margin: 4px 0 8px;
+  margin: 4px 0 0;
+  font-size: 15px;
+}
+
+.split-card .form-note {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .schedule-strip-card {
-  display: grid;
-  align-content: start;
+  grid-template-columns: 140px minmax(0, 1fr);
+}
+
+.schedule-pill-list {
+  display: flex;
   gap: 8px;
+  min-width: 0;
+  overflow: auto;
+  padding-bottom: 2px;
+  scrollbar-gutter: stable;
 }
 
 .schedule-briefing-button {
-  display: grid;
-  grid-template-columns: 46px 1fr;
+  display: inline-grid;
+  grid-template-columns: 44px minmax(0, 1fr);
   align-items: center;
   gap: 8px;
-  width: 100%;
+  flex: 0 0 auto;
+  min-width: 176px;
+  max-width: 220px;
+  border-radius: 999px;
   text-align: left;
 }
 
@@ -711,9 +745,20 @@ textarea:focus {
 
 .diary-line-row {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-columns: 120px minmax(0, 1fr);
   gap: 12px;
-  align-items: end;
+  align-items: start;
+}
+
+.diary-line-row input,
+.diary-line-row textarea {
+  height: 48px;
+  min-height: 48px;
+}
+
+.diary-line-row textarea {
+  line-height: 1.35;
+  overflow: hidden;
 }
 
 .selected-date-large {
@@ -768,6 +813,40 @@ textarea:focus {
   overflow: auto;
   padding-right: 12px;
   scrollbar-gutter: stable;
+}
+
+.rail-month-control {
+  display: grid;
+  grid-template-columns: 36px 1fr 36px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.rail-month-control strong {
+  text-align: center;
+  font-size: 16px;
+  letter-spacing: 0;
+}
+
+.rail-month-button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.rail-month-button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.rail-month-control + .mini-date-list {
+  margin-top: 0;
 }
 
 .mini-date-list {

@@ -40,6 +40,10 @@ function koreanDate(dateString) {
   return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 (${weekdays[date.getDay()]})`;
 }
 
+function shortMonthLabel(date) {
+  return `${date.getFullYear()}. ${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
 function uid(prefix) {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
@@ -124,6 +128,9 @@ function bindEvents() {
     state.monthCursor = new Date(state.monthCursor.getFullYear(), state.monthCursor.getMonth() + 1, 1);
     renderCalendar();
   });
+
+  $("#todoRailPrev").addEventListener("click", () => moveTodoRailMonth(-1));
+  $("#todoRailNext").addEventListener("click", () => moveTodoRailMonth(1));
 
   $("#todoForm").addEventListener("submit", (event) => {
     event.preventDefault();
@@ -286,12 +293,12 @@ function todoItemTemplate(todo, compact) {
 }
 
 function renderTodoDateRail() {
-  const cursor = parseDate(state.selectedDate);
-  const dates = Array.from({ length: 24 }, (_, index) => {
-    const date = new Date(cursor);
-    date.setDate(cursor.getDate() + index - 5);
-    return formatDate(date);
-  });
+  const selected = parseDate(state.selectedDate);
+  const year = selected.getFullYear();
+  const month = selected.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const dates = Array.from({ length: daysInMonth }, (_, index) => formatDate(new Date(year, month, index + 1)));
+  $("#todoRailMonthLabel").textContent = shortMonthLabel(selected);
   $("#todoDateRail").innerHTML = dates.map((date) => {
     const undoneCount = todosForDate(date).filter((todo) => !todo.done).length;
     return `
@@ -314,6 +321,20 @@ function renderTodoDateRail() {
       renderAI();
     });
   });
+}
+
+function moveTodoRailMonth(offset) {
+  const current = parseDate(state.selectedDate);
+  const targetMonth = new Date(current.getFullYear(), current.getMonth() + offset, 1);
+  const targetLastDay = new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0).getDate();
+  const targetDay = Math.min(current.getDate(), targetLastDay);
+  state.selectedDate = formatDate(new Date(targetMonth.getFullYear(), targetMonth.getMonth(), targetDay));
+  state.monthCursor = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), 1);
+  state.datePanelOpen = true;
+  renderTodos();
+  renderCalendar();
+  renderDiaryView();
+  renderAI();
 }
 
 function bindTodoActions() {
@@ -554,24 +575,26 @@ function renderSelectedDatePanel() {
   const diary = diaries[state.selectedDate];
   panel.classList.add("active");
   panel.innerHTML = `
-    <div class="split-card date-summary-card">
-      <p class="eyebrow">${koreanDate(state.selectedDate)}</p>
-      <h3>선택 날짜</h3>
-      <p class="form-note">TODO와 일정이 함께 표시됩니다.</p>
+    <div class="split-card diary-strip-card">
+      <div>
+        <p class="eyebrow">한 줄 일기</p>
+        <h3>${diary ? escapeHtml(diary.mood || "🙂") : "🙂"} ${escapeHtml(koreanDate(state.selectedDate))}</h3>
+      </div>
+      <p class="form-note">${diary ? escapeHtml(diary.text) : "아직 작성된 일기가 없습니다. 일기 탭에서 작성할 수 있어요."}</p>
     </div>
     <div class="split-card schedule-strip-card">
-      <p class="eyebrow">TODO / 일정</p>
-      ${dayEvents.length ? dayEvents.map((event) => `
-        <button class="tiny-button schedule-briefing-button ${event.done ? "done-item" : ""}" type="button" data-select-schedule="${escapeHtml(event.key)}">
-          <span>${escapeHtml(event.time || "--:--")}</span>
-          <strong>${escapeHtml(event.title)}</strong>
-        </button>
-      `).join("") : `<p class="form-note">선택한 날짜에 일정이 없습니다.</p>`}
-    </div>
-    <div class="split-card diary-strip-card">
-      <p class="eyebrow">한 줄 일기</p>
-      <h3>${diary ? escapeHtml(diary.mood || "🙂") : "🙂"} 기록</h3>
-      <p class="form-note">${diary ? escapeHtml(diary.text) : "아직 작성된 일기가 없습니다. 일기 탭에서 작성할 수 있어요."}</p>
+      <div>
+        <p class="eyebrow">TODO / 일정</p>
+        <h3>${dayEvents.length}개 일정</h3>
+      </div>
+      <div class="schedule-pill-list">
+        ${dayEvents.length ? dayEvents.map((event) => `
+          <button class="tiny-button schedule-briefing-button ${event.done ? "done-item" : ""}" type="button" data-select-schedule="${escapeHtml(event.key)}">
+            <span>${escapeHtml(event.time || "--:--")}</span>
+            <strong>${escapeHtml(event.title)}</strong>
+          </button>
+        `).join("") : `<p class="form-note">선택한 날짜에 일정이 없습니다.</p>`}
+      </div>
     </div>
   `;
   $$("[data-select-schedule]").forEach((button) => {
