@@ -269,6 +269,10 @@
             </select>
           </label>
           <label>
+            지역 <span class="optional-label">선택</span>
+            <input id="todoLocation" type="text" placeholder="예: 노원구, 강남" />
+          </label>
+          <label>
             우선순위
             <select id="todoPriority">
               <option value="high">높음</option>
@@ -299,7 +303,7 @@
           <button class="close-button" id="closeApiDialog" type="button" aria-label="닫기">×</button>
         </div>
         <p class="form-note">
-          OpenWeatherMap 키는 과제용으로 미리 설정되어 있습니다. OpenRouter 키는 이번 요청에만 사용하고 즉시 비웁니다.
+          OpenWeatherMap 키는 과제용으로 미리 설정되어 있습니다. 지역은 일정 추가에서 입력한 값만 사용하며, 없어도 일정 중심 브리핑을 생성합니다.
         </p>
         <form class="form-grid api-form" id="apiForm">
           <label>
@@ -307,8 +311,8 @@
             <input id="openRouterApiKey" type="password" autocomplete="off" placeholder="이번 요청에만 입력" />
           </label>
           <label>
-            지역명
-            <input id="briefingLocation" type="text" placeholder="예: 강남, 노원구, 서울" />
+            선택 일정 지역
+            <input id="briefingLocation" type="text" readonly placeholder="선택 일정에 지역 없음" />
           </label>
           <div class="fixed-info">
             <span>AI 모델</span>
