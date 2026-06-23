@@ -9,7 +9,9 @@ const OPEN_WEATHER_API_KEY = "c134cc93362a920120b14d4817aa0372";
 const OPENROUTER_MODEL = "openai/gpt-5.4-nano";
 const folders = ["공부", "건강", "일정", "알바", "기타"];
 const priorityLabel = { high: "높음", medium: "보통", low: "낮음" };
+const priorityColor = { high: "var(--danger)", medium: "var(--warning)", low: "var(--accent)" };
 const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
+const weekdayShorts = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const state = {
   view: "dashboard",
   monthCursor: new Date(),
@@ -43,6 +45,10 @@ function koreanDate(dateString) {
 
 function shortMonthLabel(date) {
   return `${date.getFullYear()}. ${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function weekdayShort(dateString) {
+  return weekdayShorts[parseDate(dateString).getDay()];
 }
 
 function uid(prefix) {
@@ -150,7 +156,15 @@ function bindEvents() {
   $("#todoDialog").addEventListener("click", (event) => {
     if (event.target.id === "todoDialog") closeTodoDialog();
   });
-  $("#saveDiary").addEventListener("click", saveDiary);
+  $("#openDiaryDialog").addEventListener("click", openDiaryDialog);
+  $("#closeDiaryDialog").addEventListener("click", closeDiaryDialog);
+  $("#diaryDialog").addEventListener("click", (event) => {
+    if (event.target.id === "diaryDialog") closeDiaryDialog();
+  });
+  $("#diaryForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    saveDiary();
+  });
   $("#aiQuestionForm").addEventListener("submit", handleScheduleQuestion);
   $("#openApiDialogFromDashboard").addEventListener("click", openApiDialog);
   $("#openApiDialogFromAi").addEventListener("click", openApiDialog);
@@ -195,6 +209,10 @@ function todaysTodos() {
   return todos.filter((todo) => !todo.dueDate || todo.dueDate === now);
 }
 
+function pendingTodos() {
+  return todos.filter((todo) => !todo.done);
+}
+
 function todosForDate(date) {
   return todos.filter((todo) => todo.dueDate === date || (!todo.dueDate && date === today()));
 }
@@ -212,11 +230,30 @@ function sortTodos(items) {
   return items
     .map((todo) => ({ todo, originalIndex: todos.findIndex((item) => item.id === todo.id) }))
     .sort((a, b) => (
-      priorityRank(a.todo.priority) - priorityRank(b.todo.priority)
+      Number(a.todo.done) - Number(b.todo.done)
+      || priorityRank(a.todo.priority) - priorityRank(b.todo.priority)
       || daysUntil(a.todo.dueDate) - daysUntil(b.todo.dueDate)
       || a.originalIndex - b.originalIndex
     ))
     .map((entry) => entry.todo);
+}
+
+function sortScheduleItems(items) {
+  return [...items].sort((a, b) => (
+    Number(a.done) - Number(b.done)
+    || priorityRank(a.priority) - priorityRank(b.priority)
+    || (a.time || "99:99").localeCompare(b.time || "99:99")
+    || a.title.localeCompare(b.title)
+  ));
+}
+
+function sortScheduleDots(items) {
+  return [...items].sort((a, b) => (
+    priorityRank(a.priority) - priorityRank(b.priority)
+    || Number(a.done) - Number(b.done)
+    || (a.time || "99:99").localeCompare(b.time || "99:99")
+    || a.title.localeCompare(b.title)
+  ));
 }
 
 function scheduleItemsForDate(date) {
@@ -244,7 +281,7 @@ function scheduleItemsForDate(date) {
     done: false,
     priority: "medium",
   }));
-  return [...todoItems, ...eventItems].sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99"));
+  return sortScheduleItems([...todoItems, ...eventItems]);
 }
 
 function allScheduleItems() {
@@ -272,15 +309,15 @@ function schedulePromptLine(item) {
 }
 
 function renderTodos() {
-  const todayItems = todaysTodos();
+  const dashboardItems = sortTodos(pendingTodos());
   const selectedItems = sortTodos(todosForDate(state.selectedDate));
-  const doneCount = todayItems.filter((todo) => todo.done).length;
-  const total = todayItems.length;
+  const doneCount = todos.filter((todo) => todo.done).length;
+  const total = todos.length;
   $("#todoProgressBar").style.width = total ? `${(doneCount / total) * 100}%` : "0%";
-  $("#todoProgressText").textContent = `${doneCount}/${total}`;
-  $("#dashboardTodoList").innerHTML = todayItems.length
-    ? sortTodos(todayItems).map((todo) => todoItemTemplate(todo, true)).join("")
-    : emptyState("오늘 등록된 TODO가 없습니다.");
+  $("#todoProgressText").textContent = `미완료 ${dashboardItems.length}`;
+  $("#dashboardTodoList").innerHTML = dashboardItems.length
+    ? dashboardItems.map((todo) => todoItemTemplate(todo, true)).join("")
+    : emptyState("미완료 일정이 없습니다.");
   renderTodoDateRail();
   $("#todoList").innerHTML = selectedItems.length
     ? selectedItems.map((todo) => todoItemTemplate(todo, false)).join("")
@@ -319,12 +356,14 @@ function renderTodoDateRail() {
   const dates = Array.from({ length: daysInMonth }, (_, index) => formatDate(new Date(year, month, index + 1)));
   $("#todoRailMonthLabel").textContent = shortMonthLabel(selected);
   $("#todoDateRail").innerHTML = dates.map((date) => {
-    const undoneCount = todosForDate(date).filter((todo) => !todo.done).length;
+    const undoneItems = sortScheduleDots(scheduleItemsForDate(date).filter((item) => !item.done));
     return `
       <button class="mini-date-button ${date === state.selectedDate ? "active" : ""}" type="button" data-todo-date="${date}">
-        <span class="mini-date-number">${parseDate(date).getDate()}</span>
-        <span class="mini-date-summary">
-          <strong class="mini-date-count">미완료 ${undoneCount}개</strong>
+        <span class="mini-date-number"><span>${parseDate(date).getDate()}</span><small class="mini-date-weekday">${weekdayShort(date)}</small></span>
+        <span class="mini-date-summary shifted-summary">
+          <span class="event-dots date-rail-dots">
+            ${undoneItems.map((item) => `<i class="event-dot" style="background:${dotColor(item.priority)}"></i>`).join("")}
+          </span>
         </span>
       </button>
     `;
@@ -420,18 +459,30 @@ function todaysHabits() {
 
 function renderHabits() {
   const todayHabits = todaysHabits();
+  const sortedTodayHabits = sortHabitsByDone(todayHabits);
+  const sortedHabits = sortHabitsByDone(habits);
   const doneCount = todayHabits.filter((habit) => habit.completedDates.includes(today())).length;
   const percent = todayHabits.length ? Math.round((doneCount / todayHabits.length) * 100) : 0;
   $("#habitProgressBar").style.width = `${percent}%`;
   $("#habitProgressText").textContent = `${percent}%`;
-  $("#dashboardHabitList").innerHTML = todayHabits.length
-    ? todayHabits.map((habit) => habitTemplate(habit, true)).join("")
+  $("#dashboardHabitList").innerHTML = sortedTodayHabits.length
+    ? sortedTodayHabits.map((habit) => habitTemplate(habit, true)).join("")
     : emptyState("오늘 예정된 습관이 없습니다.");
   renderHabitRanking();
-  $("#habitList").innerHTML = habits.length
-    ? habits.map((habit) => habitTemplate(habit, false)).join("")
+  $("#habitList").innerHTML = sortedHabits.length
+    ? sortedHabits.map((habit) => habitTemplate(habit, false)).join("")
     : emptyState("습관을 추가하면 이곳에 표시됩니다.");
   bindHabitActions();
+}
+
+function sortHabitsByDone(items) {
+  return items
+    .map((habit) => ({ habit, originalIndex: habits.findIndex((item) => item.id === habit.id) }))
+    .sort((a, b) => (
+      Number(a.habit.completedDates.includes(today())) - Number(b.habit.completedDates.includes(today()))
+      || a.originalIndex - b.originalIndex
+    ))
+    .map((entry) => entry.habit);
 }
 
 function habitStreak(habit) {
@@ -553,13 +604,14 @@ function renderCalendar() {
     if (!day) return `<button class="day-cell empty" type="button" tabindex="-1"></button>`;
     const date = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const dayEvents = scheduleItemsForDate(date);
+    const dotEvents = sortScheduleDots(dayEvents);
     const isToday = date === today();
     const isSelected = date === state.selectedDate;
     return `
       <button class="day-cell ${isToday ? "today" : ""} ${isSelected ? "selected" : ""}" type="button" data-date="${date}">
         <span class="day-number">${day}</span>
         <span class="event-dots">
-          ${dayEvents.map((_, index) => `<i class="event-dot" style="background:${dotColor(index)}"></i>`).join("")}
+          ${dotEvents.map((event) => `<i class="event-dot" style="background:${dotColor(event.priority)}"></i>`).join("")}
         </span>
       </button>
     `;
@@ -579,8 +631,8 @@ function renderCalendar() {
   renderSelectedDatePanel();
 }
 
-function dotColor(index) {
-  return ["#d94a4a", "#3158d4", "#2fa66f", "#d98a15"][index % 4];
+function dotColor(priority) {
+  return priorityColor[priority] || "var(--primary)";
 }
 
 function renderSelectedDatePanel() {
@@ -643,10 +695,15 @@ function prepareBriefingFromCalendar(scheduleKey) {
 function renderDiaryView() {
   const selected = parseDate(state.selectedDate);
   state.diaryRailCursor = new Date(selected.getFullYear(), selected.getMonth(), 1);
+  renderDiaryFormFields();
+  renderDiaryDateRail();
+  renderDiaryEntries();
+}
+
+function renderDiaryFormFields() {
   $("#diarySelectedDate").textContent = koreanDate(state.selectedDate);
   $("#diaryMood").value = diaries[state.selectedDate]?.mood || "🙂";
   $("#diaryText").value = diaries[state.selectedDate]?.text || "";
-  renderDiaryDateRail();
 }
 
 function renderDiaryDateRail() {
@@ -658,9 +715,9 @@ function renderDiaryDateRail() {
   $("#diaryRailMonthLabel").textContent = shortMonthLabel(cursor);
   $("#diaryDateRail").innerHTML = dates.map((date) => `
     <button class="mini-date-button ${date === state.selectedDate ? "active" : ""}" type="button" data-diary-date="${date}">
-      <span class="mini-date-number">${parseDate(date).getDate()}</span>
-      <span class="mini-date-summary">
-        <strong class="mini-date-count">${escapeHtml(diaries[date]?.mood || "미작성")}</strong>
+      <span class="mini-date-number"><span>${parseDate(date).getDate()}</span><small class="mini-date-weekday">${weekdayShort(date)}</small></span>
+      <span class="mini-date-summary shifted-summary">
+        <strong class="mini-date-count diary-date-emoji">${escapeHtml(diaries[date]?.mood || "")}</strong>
       </span>
     </button>
   `).join("");
@@ -673,6 +730,7 @@ function renderDiaryDateRail() {
       state.datePanelOpen = true;
       renderCalendar();
       renderDiaryView();
+      scrollDiaryEntryIntoView(state.selectedDate);
       renderAI();
     });
   });
@@ -693,6 +751,40 @@ function moveDiaryRailMonth(offset) {
   renderAI();
 }
 
+function renderDiaryEntries() {
+  const entries = Object.entries(diaries)
+    .filter(([, diary]) => diary?.text)
+    .sort(([a], [b]) => a.localeCompare(b));
+  $("#diaryEntryList").innerHTML = entries.length
+    ? entries.map(([date, diary]) => `
+      <article class="diary-entry ${date === state.selectedDate ? "active" : ""}" data-diary-entry="${date}">
+        <div class="diary-entry-date">
+          <span>${escapeHtml(diary.mood || "🙂")}</span>
+          <strong>${escapeHtml(koreanDate(date))}</strong>
+        </div>
+        <p>${escapeHtml(diary.text)}</p>
+      </article>
+    `).join("")
+    : emptyState("작성된 일기가 없습니다.");
+}
+
+function scrollDiaryEntryIntoView(date) {
+  requestAnimationFrame(() => {
+    const entry = document.querySelector(`[data-diary-entry="${date}"]`);
+    entry?.scrollIntoView({ block: "center", behavior: "smooth" });
+  });
+}
+
+function openDiaryDialog() {
+  renderDiaryFormFields();
+  $("#diaryDialog").classList.remove("hidden");
+  $("#diaryText").focus();
+}
+
+function closeDiaryDialog() {
+  $("#diaryDialog").classList.add("hidden");
+}
+
 function saveDiary() {
   const text = $("#diaryText").value.trim();
   const mood = $("#diaryMood").value.trim() || "🙂";
@@ -702,8 +794,10 @@ function saveDiary() {
     diaries[state.selectedDate] = { text, mood };
   }
   save(STORAGE_KEYS.diaries, diaries);
+  closeDiaryDialog();
   renderCalendar();
   renderDiaryView();
+  scrollDiaryEntryIntoView(state.selectedDate);
 }
 
 function renderAI() {

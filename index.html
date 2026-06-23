@@ -49,7 +49,7 @@
               <article class="panel todo-panel">
                 <div class="panel-heading">
                   <div>
-                    <p class="eyebrow">TODAY</p>
+                    <p class="eyebrow">SCHEDULE</p>
                     <h2 id="dashboardTitle">TODO 리스트</h2>
                   </div>
                   <button class="icon-action" type="button" data-view-jump="todo" aria-label="TODO 상세">
@@ -189,27 +189,15 @@
               </div>
               <div class="mini-date-list" id="diaryDateRail"></div>
             </aside>
-            <article class="panel map-main">
+            <article class="panel map-main diary-main">
               <div class="panel-heading">
                 <div>
                   <p class="eyebrow">DIARY</p>
                   <h1 id="diaryViewTitle">날짜별 한 줄 일기</h1>
                 </div>
+                <button class="primary-button compact-button" id="openDiaryDialog" type="button">일기 추가</button>
               </div>
-              <div class="selected-date-large" id="diarySelectedDate"></div>
-              <div class="diary-editor">
-                <div class="diary-line-row">
-                  <label>
-                    이모티콘
-                    <input id="diaryMood" type="text" maxlength="2" value="🙂" />
-                  </label>
-                  <label for="diaryText">
-                    한 줄 일기
-                    <textarea id="diaryText" rows="1" placeholder="오늘 하루를 한 줄로 남겨보세요."></textarea>
-                  </label>
-                </div>
-                <button class="secondary-button" id="saveDiary" type="button">일기 저장</button>
-              </div>
+              <div class="scroll-list detail-list diary-history-list" id="diaryEntryList"></div>
             </article>
           </div>
         </section>
@@ -296,6 +284,32 @@
             <input id="todoDueTime" type="time" />
           </label>
           <button class="primary-button" type="submit">일정 추가</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-backdrop hidden" id="diaryDialog" role="dialog" aria-modal="true" aria-labelledby="diaryDialogTitle">
+      <div class="modal-card">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">DIARY</p>
+            <h2 id="diaryDialogTitle">일기 추가</h2>
+          </div>
+          <button class="close-button" id="closeDiaryDialog" type="button" aria-label="닫기">×</button>
+        </div>
+        <div class="selected-date-large" id="diarySelectedDate"></div>
+        <form class="diary-editor" id="diaryForm">
+          <div class="diary-line-row">
+            <label>
+              이모티콘
+              <input id="diaryMood" type="text" maxlength="2" value="🙂" />
+            </label>
+            <label for="diaryText">
+              한 줄 일기
+              <textarea id="diaryText" rows="1" placeholder="오늘 하루를 한 줄로 남겨보세요."></textarea>
+            </label>
+          </div>
+          <button class="secondary-button" id="saveDiary" type="submit">일기 저장</button>
         </form>
       </div>
     </div>
