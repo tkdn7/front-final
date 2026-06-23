@@ -611,7 +611,7 @@ function renderCalendar() {
     if (!day) return `<button class="day-cell empty" type="button" tabindex="-1"></button>`;
     const date = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const dayEvents = scheduleItemsForDate(date);
-    const dotEvents = sortScheduleDots(dayEvents);
+    const dotEvents = sortScheduleDots(dayEvents.filter((event) => !event.done));
     const isToday = date === today();
     const isSelected = date === state.selectedDate;
     return `
