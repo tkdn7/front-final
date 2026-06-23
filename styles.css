@@ -302,6 +302,16 @@ button {
   margin-bottom: 14px;
 }
 
+.schedule-count-row {
+  justify-content: flex-end;
+}
+
+.schedule-count-row strong {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+}
+
 .progress-track {
   flex: 1;
   height: 9px;
@@ -715,6 +725,20 @@ button {
   white-space: nowrap;
 }
 
+.schedule-button-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.schedule-button-copy small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .calendar-panel.split-open .split-card {
   padding: 10px 12px;
 }
@@ -884,8 +908,13 @@ input[readonly] {
 
 .diary-editor {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   margin-top: 14px;
+}
+
+.diary-date-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .diary-line-row {
@@ -895,15 +924,16 @@ input[readonly] {
   align-items: start;
 }
 
-.diary-line-row input,
-.diary-line-row textarea {
-  height: 48px;
-  min-height: 48px;
+.diary-line-row input {
+  height: 52px;
+  min-height: 52px;
 }
 
 .diary-line-row textarea {
-  line-height: 1.35;
-  overflow: hidden;
+  height: 96px;
+  min-height: 96px;
+  line-height: 1.5;
+  overflow: auto;
 }
 
 .selected-date-large {

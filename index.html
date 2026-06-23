@@ -56,11 +56,8 @@
                     <img src="./icon/todo-icon.png" alt="" />
                   </button>
                 </div>
-                <div class="progress-row">
-                  <div class="progress-track">
-                    <span id="todoProgressBar"></span>
-                  </div>
-                  <strong id="todoProgressText">0/0</strong>
+                <div class="progress-row schedule-count-row">
+                  <strong id="todoProgressText">미완료 0개</strong>
                 </div>
                 <div class="scroll-list compact-list" id="dashboardTodoList"></div>
               </article>
@@ -299,14 +296,20 @@
         </div>
         <div class="selected-date-large" id="diarySelectedDate"></div>
         <form class="diary-editor" id="diaryForm">
+          <div class="diary-date-row">
+            <label>
+              날짜
+              <input id="diaryDate" type="date" />
+            </label>
+          </div>
           <div class="diary-line-row">
             <label>
               이모티콘
-              <input id="diaryMood" type="text" maxlength="2" value="🙂" />
+              <input id="diaryMood" type="text" maxlength="2" placeholder="🙂" />
             </label>
             <label for="diaryText">
               한 줄 일기
-              <textarea id="diaryText" rows="1" placeholder="오늘 하루를 한 줄로 남겨보세요."></textarea>
+              <textarea id="diaryText" rows="3" placeholder="오늘 하루를 한 줄로 남겨보세요."></textarea>
             </label>
           </div>
           <button class="secondary-button" id="saveDiary" type="submit">일기 저장</button>

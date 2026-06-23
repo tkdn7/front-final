@@ -161,6 +161,7 @@ function bindEvents() {
   $("#diaryDialog").addEventListener("click", (event) => {
     if (event.target.id === "diaryDialog") closeDiaryDialog();
   });
+  $("#diaryDate").addEventListener("change", changeDiaryDateFromForm);
   $("#diaryForm").addEventListener("submit", (event) => {
     event.preventDefault();
     saveDiary();
@@ -226,14 +227,22 @@ function daysUntil(dateString) {
   return Math.max(0, Math.round((parseDate(dateString) - parseDate(today())) / 86400000));
 }
 
+function addedOrder(todo, originalIndex) {
+  return todo.createdAt || originalIndex;
+}
+
+function dueOrder(dateString) {
+  return dateString ? parseDate(dateString).getTime() : Number.POSITIVE_INFINITY;
+}
+
 function sortTodos(items) {
   return items
     .map((todo) => ({ todo, originalIndex: todos.findIndex((item) => item.id === todo.id) }))
     .sort((a, b) => (
       Number(a.todo.done) - Number(b.todo.done)
+      || dueOrder(a.todo.dueDate) - dueOrder(b.todo.dueDate)
       || priorityRank(a.todo.priority) - priorityRank(b.todo.priority)
-      || daysUntil(a.todo.dueDate) - daysUntil(b.todo.dueDate)
-      || a.originalIndex - b.originalIndex
+      || addedOrder(a.todo, a.originalIndex) - addedOrder(b.todo, b.originalIndex)
     ))
     .map((entry) => entry.todo);
 }
@@ -311,10 +320,7 @@ function schedulePromptLine(item) {
 function renderTodos() {
   const dashboardItems = sortTodos(pendingTodos());
   const selectedItems = sortTodos(todosForDate(state.selectedDate));
-  const doneCount = todos.filter((todo) => todo.done).length;
-  const total = todos.length;
-  $("#todoProgressBar").style.width = total ? `${(doneCount / total) * 100}%` : "0%";
-  $("#todoProgressText").textContent = `미완료 ${dashboardItems.length}`;
+  $("#todoProgressText").textContent = `미완료 ${dashboardItems.length}개`;
   $("#dashboardTodoList").innerHTML = dashboardItems.length
     ? dashboardItems.map((todo) => todoItemTemplate(todo, true)).join("")
     : emptyState("미완료 일정이 없습니다.");
@@ -335,6 +341,7 @@ function todoItemTemplate(todo, compact) {
         <div class="item-meta">
           ${escapeHtml(todo.dueDate || "기한 없음")} · ${escapeHtml(dueLabel)}
           ${todo.dueTime ? ` · ${escapeHtml(todo.dueTime)}` : ""}
+          ${todo.location ? ` · 지역 ${escapeHtml(todo.location)}` : ""}
         </div>
         ${compact ? "" : `
           <div class="badge-row">
@@ -645,6 +652,7 @@ function renderSelectedDatePanel() {
     return;
   }
   const dayEvents = scheduleItemsForDate(state.selectedDate);
+  const pendingDayEvents = dayEvents.filter((event) => !event.done);
   const diary = diaries[state.selectedDate];
   const hasDiary = Boolean(diary?.text);
   const diaryBody = hasDiary
@@ -664,13 +672,16 @@ function renderSelectedDatePanel() {
     </div>
     <div class="split-card schedule-strip-card">
       <div class="split-card-header schedule-card-header">
-        <h3><span>TODO / 일정</span><strong>${dayEvents.length}개 일정</strong></h3>
+        <h3><span>TODO / 일정</span><strong>미완료 ${pendingDayEvents.length}개</strong></h3>
       </div>
       <div class="schedule-pill-list">
         ${dayEvents.length ? dayEvents.map((event) => `
           <button class="tiny-button schedule-briefing-button ${event.done ? "done-item" : ""}" type="button" data-select-schedule="${escapeHtml(event.key)}">
             <span>${escapeHtml(event.time || "--:--")}</span>
-            <strong>${escapeHtml(event.title)}</strong>
+            <span class="schedule-button-copy">
+              <strong>${escapeHtml(event.title)}</strong>
+              ${event.location ? `<small>지역 ${escapeHtml(event.location)}</small>` : ""}
+            </span>
           </button>
         `).join("") : `<p class="form-note">선택한 날짜에 일정이 없습니다.</p>`}
       </div>
@@ -702,8 +713,23 @@ function renderDiaryView() {
 
 function renderDiaryFormFields() {
   $("#diarySelectedDate").textContent = koreanDate(state.selectedDate);
-  $("#diaryMood").value = diaries[state.selectedDate]?.mood || "🙂";
+  $("#diaryDate").value = state.selectedDate;
+  $("#diaryMood").value = diaries[state.selectedDate]?.mood || "";
   $("#diaryText").value = diaries[state.selectedDate]?.text || "";
+}
+
+function changeDiaryDateFromForm() {
+  const nextDate = $("#diaryDate").value;
+  if (!nextDate) return;
+  state.selectedDate = nextDate;
+  const selected = parseDate(state.selectedDate);
+  state.monthCursor = new Date(selected.getFullYear(), selected.getMonth(), 1);
+  state.diaryRailCursor = new Date(selected.getFullYear(), selected.getMonth(), 1);
+  renderCalendar();
+  renderDiaryDateRail();
+  renderDiaryEntries();
+  renderDiaryFormFields();
+  renderAI();
 }
 
 function renderDiaryDateRail() {
@@ -787,7 +813,12 @@ function closeDiaryDialog() {
 
 function saveDiary() {
   const text = $("#diaryText").value.trim();
-  const mood = $("#diaryMood").value.trim() || "🙂";
+  const mood = $("#diaryMood").value.trim();
+  if (!mood) {
+    alert("이모티콘을 선택하세요!");
+    $("#diaryMood").focus();
+    return;
+  }
   if (!text) {
     delete diaries[state.selectedDate];
   } else {
