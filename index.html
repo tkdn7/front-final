@@ -86,18 +86,20 @@
             </aside>
 
             <section class="panel calendar-panel">
-              <div class="panel-heading calendar-heading">
-                <button class="month-button" id="prevMonth" type="button" aria-label="이전 달">&lt;</button>
-                <div>
-                  <p class="eyebrow">CALENDAR</p>
-                  <h2 id="calendarTitle">2026년 06월</h2>
+              <div class="calendar-date-block">
+                <div class="panel-heading calendar-heading">
+                  <button class="month-button" id="prevMonth" type="button" aria-label="이전 달">&lt;</button>
+                  <div>
+                    <p class="eyebrow">CALENDAR</p>
+                    <h2 id="calendarTitle">2026년 06월</h2>
+                  </div>
+                  <button class="month-button" id="nextMonth" type="button" aria-label="다음 달">&gt;</button>
                 </div>
-                <button class="month-button" id="nextMonth" type="button" aria-label="다음 달">&gt;</button>
+                <div class="weekday-row" aria-hidden="true">
+                  <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
               </div>
-              <div class="weekday-row" aria-hidden="true">
-                <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span>
-              </div>
-              <div class="calendar-grid" id="calendarGrid"></div>
               <div class="date-split" id="selectedDatePanel"></div>
             </section>
 

@@ -227,6 +227,17 @@ button {
   flex-direction: column;
 }
 
+.calendar-panel {
+  overflow: hidden;
+}
+
+.calendar-date-block {
+  display: flex;
+  flex: 0 0 calc((100% - 20px) / 2);
+  flex-direction: column;
+  min-height: 0;
+}
+
 .map-rail {
   background: color-mix(in srgb, var(--surface) 84%, var(--surface-soft));
 }
@@ -488,6 +499,12 @@ button {
   padding: 4px 0 2px;
 }
 
+.calendar-date-block .calendar-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  grid-auto-rows: minmax(0, 1fr);
+}
+
 .day-cell {
   min-height: 42px;
   border: 0;
@@ -548,14 +565,16 @@ button {
 .date-split {
   display: none;
   grid-template-columns: 1fr;
+  grid-template-rows: minmax(0, 0.82fr) minmax(0, 1.18fr);
   gap: 10px;
-  margin-top: 14px;
+  margin-top: 12px;
   border-top: 1px solid var(--line);
   border-radius: 0 0 var(--radius) var(--radius);
   background: var(--surface);
-  padding: 14px 18px 4px;
+  padding: 12px 14px 0;
   flex: 0 0 auto;
   min-height: 0;
+  overflow: hidden;
 }
 
 .date-split.active {
@@ -563,61 +582,129 @@ button {
   animation: revealPanel 220ms ease-out;
 }
 
+.calendar-panel.split-open .date-split {
+  grid-template-rows: minmax(42px, 0.48fr) minmax(0, 1.52fr);
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px 0;
+  flex: 1 1 0;
+}
+
 .split-card {
-  display: grid;
-  grid-template-columns: 170px minmax(0, 1fr);
-  align-items: center;
-  gap: 14px;
-  min-height: 58px;
-  max-height: 88px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 22px;
+  border-radius: var(--radius);
   background: var(--surface);
-  padding: 10px 14px;
+  padding: 12px;
   scrollbar-gutter: stable;
 }
 
-.split-card h3 {
-  margin: 4px 0 0;
-  font-size: 15px;
+.split-card-header {
+  flex: 0 0 auto;
+  margin-bottom: 14px;
 }
 
-.split-card .form-note {
+.split-card-header h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
   margin: 0;
-  min-width: 0;
+  font-family: inherit;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0;
+}
+
+.split-card-header h3 span {
+  font-weight: inherit;
+}
+
+.split-card-header h3 strong {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.diary-card-body {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  min-height: 0;
+  flex: 1;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+}
+
+.diary-card-body.no-diary {
+  display: block;
+}
+
+.diary-card-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  font-size: 32px;
+  line-height: 1;
+}
+
+.diary-card-text {
+  margin: 0;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  overflow: auto;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.55;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  scrollbar-gutter: stable;
 }
 
 .schedule-strip-card {
-  grid-template-columns: 140px minmax(0, 1fr);
-  min-height: 76px;
-  max-height: 128px;
+  min-height: 0;
+}
+
+.schedule-card-header h3 {
+  gap: 12px;
+}
+
+.schedule-card-header h3 strong {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .schedule-pill-list {
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
+  display: grid;
+  align-content: start;
   gap: 8px;
   min-width: 0;
-  max-height: 74px;
+  min-height: 0;
+  flex: 1;
   overflow: auto;
-  padding-bottom: 2px;
+  padding-right: 6px;
   scrollbar-gutter: stable;
 }
 
 .schedule-briefing-button {
-  display: inline-grid;
-  grid-template-columns: 44px minmax(0, 1fr);
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
-  flex: 0 0 auto;
-  min-width: 176px;
-  max-width: 220px;
-  border-radius: 999px;
+  gap: 12px;
+  width: 100%;
+  min-height: 40px;
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+  color: var(--text);
+  padding: 8px 12px;
   text-align: left;
 }
 
@@ -625,6 +712,43 @@ button {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.calendar-panel.split-open .split-card {
+  padding: 10px 12px;
+}
+
+.calendar-panel.split-open .split-card-header {
+  margin-bottom: 14px;
+}
+
+.calendar-panel.split-open .split-card-header h3 {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.calendar-panel.split-open .split-card-header h3 strong,
+.calendar-panel.split-open .schedule-card-header h3 strong {
+  font-size: 14px;
+}
+
+.calendar-panel.split-open .diary-card-text {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.calendar-panel.split-open .diary-card-emoji {
+  font-size: 26px;
+}
+
+.calendar-panel.split-open .schedule-pill-list {
+  gap: 8px;
+}
+
+.calendar-panel.split-open .schedule-briefing-button {
+  grid-template-columns: 52px minmax(0, 1fr);
+  min-height: 40px;
 }
 
 @keyframes revealPanel {

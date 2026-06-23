@@ -583,26 +583,34 @@ function dotColor(index) {
 
 function renderSelectedDatePanel() {
   const panel = $("#selectedDatePanel");
+  const calendarPanel = panel.closest(".calendar-panel");
   if (!state.datePanelOpen) {
     panel.classList.remove("active");
+    calendarPanel?.classList.remove("split-open");
     panel.innerHTML = "";
     return;
   }
   const dayEvents = scheduleItemsForDate(state.selectedDate);
   const diary = diaries[state.selectedDate];
+  const hasDiary = Boolean(diary?.text);
+  const diaryBody = hasDiary
+    ? `<span class="diary-card-emoji">${escapeHtml(diary.mood || "🙂")}</span>
+        <p class="diary-card-text">${escapeHtml(diary.text)}</p>`
+    : `<p class="diary-card-text empty-diary-text">아직 작성된 일기가 없습니다. 일기 탭에서 작성할 수 있어요.</p>`;
   panel.classList.add("active");
+  calendarPanel?.classList.add("split-open");
   panel.innerHTML = `
     <div class="split-card diary-strip-card">
-      <div>
-        <p class="eyebrow">한 줄 일기</p>
-        <h3>${diary ? escapeHtml(diary.mood || "🙂") : "🙂"} ${escapeHtml(koreanDate(state.selectedDate))}</h3>
+      <div class="split-card-header diary-card-header">
+        <h3><span>한줄일기</span><strong>${escapeHtml(koreanDate(state.selectedDate))}</strong></h3>
       </div>
-      <p class="form-note">${diary ? escapeHtml(diary.text) : "아직 작성된 일기가 없습니다. 일기 탭에서 작성할 수 있어요."}</p>
+      <div class="diary-card-body ${hasDiary ? "" : "no-diary"}">
+        ${diaryBody}
+      </div>
     </div>
     <div class="split-card schedule-strip-card">
-      <div>
-        <p class="eyebrow">TODO / 일정</p>
-        <h3>${dayEvents.length}개 일정</h3>
+      <div class="split-card-header schedule-card-header">
+        <h3><span>TODO / 일정</span><strong>${dayEvents.length}개 일정</strong></h3>
       </div>
       <div class="schedule-pill-list">
         ${dayEvents.length ? dayEvents.map((event) => `
