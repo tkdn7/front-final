@@ -955,6 +955,10 @@ input[readonly] {
   gap: 0;
 }
 
+#openDiaryDialog {
+  margin-right: 20px;
+}
+
 .diary-history-list {
   display: grid;
   align-content: start;
