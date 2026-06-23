@@ -652,6 +652,7 @@ function renderSelectedDatePanel() {
     return;
   }
   const dayEvents = scheduleItemsForDate(state.selectedDate);
+  const displayedDayEvents = sortSchedulesByTime(dayEvents);
   const pendingDayEvents = dayEvents.filter((event) => !event.done);
   const diary = diaries[state.selectedDate];
   const hasDiary = Boolean(diary?.text);
@@ -675,7 +676,7 @@ function renderSelectedDatePanel() {
         <h3><span>TODO / 일정</span><strong>미완료 ${pendingDayEvents.length}개</strong></h3>
       </div>
       <div class="schedule-pill-list">
-        ${dayEvents.length ? dayEvents.map((event) => `
+        ${displayedDayEvents.length ? displayedDayEvents.map((event) => `
           <button class="tiny-button schedule-briefing-button ${event.done ? "done-item" : ""}" type="button" data-select-schedule="${escapeHtml(event.key)}">
             <span>${escapeHtml(event.time || "--:--")}</span>
             <span class="schedule-button-copy">
