@@ -6,6 +6,14 @@ const STORAGE_KEYS = {
 };
 
 const OPEN_WEATHER_API_KEY = "c134cc93362a920120b14d4817aa0372";
+const WEATHER_LOCATION_ALIASES = {
+  "옥정": ["옥정동, 양주시, KR", "양주시 옥정동, KR"],
+  "옥정동": ["옥정동, 양주시, KR", "양주시 옥정동, KR"],
+};
+const WEATHER_COORDINATE_FALLBACKS = {
+  "옥정": { lat: 37.8219, lon: 127.0947, name: "양주시 옥정동" },
+  "옥정동": { lat: 37.8219, lon: 127.0947, name: "양주시 옥정동" },
+};
 const OPENROUTER_MODEL = "openai/gpt-5.4-nano";
 const folders = ["공부", "건강", "일정", "알바", "기타"];
 const priorityLabel = { high: "높음", medium: "보통", low: "낮음" };
@@ -247,6 +255,18 @@ function sortTodos(items) {
     .map((entry) => entry.todo);
 }
 
+function sortTodosForTodoPage(items) {
+  return items
+    .map((todo) => ({ todo, originalIndex: todos.findIndex((item) => item.id === todo.id) }))
+    .sort((a, b) => (
+      Number(a.todo.done) - Number(b.todo.done)
+      || priorityRank(a.todo.priority) - priorityRank(b.todo.priority)
+      || (a.todo.dueTime || "99:99").localeCompare(b.todo.dueTime || "99:99")
+      || addedOrder(a.todo, a.originalIndex) - addedOrder(b.todo, b.originalIndex)
+    ))
+    .map((entry) => entry.todo);
+}
+
 function sortScheduleItems(items) {
   return [...items].sort((a, b) => (
     Number(a.done) - Number(b.done)
@@ -319,7 +339,7 @@ function schedulePromptLine(item) {
 
 function renderTodos() {
   const dashboardItems = sortTodos(pendingTodos());
-  const selectedItems = sortTodos(todosForDate(state.selectedDate));
+  const selectedItems = sortTodosForTodoPage(todosForDate(state.selectedDate));
   $("#todoProgressText").textContent = `미완료 ${dashboardItems.length}개`;
   $("#dashboardTodoList").innerHTML = dashboardItems.length
     ? dashboardItems.map((todo) => todoItemTemplate(todo, true)).join("")
@@ -1024,13 +1044,41 @@ function fallbackWeather(location) {
 }
 
 async function fetchWeatherByLocation(location, apiKey) {
+  const normalizedLocation = normalizeWeatherLocation(location);
+  const searchTerms = weatherSearchTerms(location);
+
+  for (const term of searchTerms) {
+    const geo = await fetchGeocode(term, apiKey);
+    if (geo) return fetchWeatherByCoordinates(geo, apiKey, location);
+  }
+
+  const fallback = WEATHER_COORDINATE_FALLBACKS[normalizedLocation];
+  if (fallback) return fetchWeatherByCoordinates(fallback, apiKey, location);
+
+  throw { kind: "location" };
+}
+
+function normalizeWeatherLocation(location) {
+  return location.replace(/\s+/g, "").replace(/^경기도/, "").replace(/^양주시/, "");
+}
+
+function weatherSearchTerms(location) {
+  const trimmed = location.trim();
+  const normalized = normalizeWeatherLocation(trimmed);
+  return [...new Set([trimmed, ...(WEATHER_LOCATION_ALIASES[normalized] || [])].filter(Boolean))];
+}
+
+async function fetchGeocode(location, apiKey) {
   const geoUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(location)}&limit=1&appid=${encodeURIComponent(apiKey)}`;
   const geoResponse = await fetch(geoUrl);
   if (geoResponse.status === 401) throw { kind: "weather-key" };
   if (!geoResponse.ok) throw { kind: "weather-api" };
   const geo = await geoResponse.json();
-  if (!Array.isArray(geo) || geo.length === 0) throw { kind: "location" };
-  const { lat, lon, name, local_names: localNames } = geo[0];
+  return Array.isArray(geo) && geo.length > 0 ? geo[0] : null;
+}
+
+async function fetchWeatherByCoordinates(place, apiKey, originalLocation) {
+  const { lat, lon, name, local_names: localNames } = place;
   const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${encodeURIComponent(apiKey)}&units=metric&lang=kr`;
   const weatherResponse = await fetch(weatherUrl);
   if (weatherResponse.status === 401) throw { kind: "weather-key" };
@@ -1038,7 +1086,7 @@ async function fetchWeatherByLocation(location, apiKey) {
   const weather = await weatherResponse.json();
   return {
     available: true,
-    location: localNames?.ko || name || location,
+    location: localNames?.ko || name || originalLocation,
     temp: weather.main?.temp,
     feelsLike: weather.main?.feels_like,
     humidity: weather.main?.humidity,
